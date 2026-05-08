@@ -80,9 +80,11 @@ class PriceTracker {
         const variance = (Math.random() - 0.5) * 0.3;
         const price = Math.max(0.1, basePrice * (1 + variance));
         
+        // Use db.run directly with custom date - need to wait for init
+        await db.waitForInit();
+        
         await new Promise((resolve, reject) => {
-          const dbModule = require('./database');
-          dbModule.db.run(
+          db.db.run(
             `INSERT INTO price_history (card_id, card_name, price_type, price, recorded_at) 
              VALUES (?, ?, ?, ?, ?)`,
             [cardId, cardName, type, price.toFixed(2), date.toISOString()],

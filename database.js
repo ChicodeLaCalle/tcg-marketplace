@@ -1,36 +1,75 @@
 const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
+const fs = require('fs');
 
 const DB_PATH = path.join(__dirname, 'prices.db');
 
 class Database {
   constructor() {
+    // Ensure directory exists
+    const dbDir = path.dirname(DB_PATH);
+    if (!fs.existsSync(dbDir)) {
+      fs.mkdirSync(dbDir, { recursive: true });
+    }
+
     this.db = new sqlite3.Database(DB_PATH);
+    this.initialized = false;
     this.init();
   }
 
   init() {
-    // Price history table
-    this.db.run(`
-      CREATE TABLE IF NOT EXISTS price_history (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        card_id TEXT NOT NULL,
-        card_name TEXT NOT NULL,
-        price_type TEXT NOT NULL,
-        price REAL,
-        recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
-      )
-    `);
+    // Use serialize to ensure tables are created in order
+    this.db.serialize(() => {
+      // Price history table
+      this.db.run(`
+        CREATE TABLE IF NOT EXISTS price_history (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          card_id TEXT NOT NULL,
+          card_name TEXT NOT NULL,
+          price_type TEXT NOT NULL,
+          price REAL,
+          recorded_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+      `, (err) => {
+        if (err) {
+          console.error('Error creating price_history table:', err);
+        } else {
+          console.log('✅ price_history table ready');
+        }
+      });
 
-    // Index for faster queries
-    this.db.run(`
-      CREATE INDEX IF NOT EXISTS idx_card_date 
-      ON price_history(card_id, recorded_at)
-    `);
+      // Index for faster queries
+      this.db.run(`
+        CREATE INDEX IF NOT EXISTS idx_card_date 
+        ON price_history(card_id, recorded_at)
+      `, (err) => {
+        if (err) {
+          console.error('Error creating index:', err);
+        }
+      });
+
+      this.initialized = true;
+    });
+  }
+
+  // Wait for initialization (helper for async operations)
+  async waitForInit() {
+    return new Promise((resolve) => {
+      const check = () => {
+        if (this.initialized) {
+          resolve();
+        } else {
+          setTimeout(check, 50);
+        }
+      };
+      check();
+    });
   }
 
   // Record a price snapshot
-  recordPrice(cardId, cardName, priceType, price) {
+  async recordPrice(cardId, cardName, priceType, price) {
+    await this.waitForInit();
+    
     return new Promise((resolve, reject) => {
       this.db.run(
         `INSERT INTO price_history (card_id, card_name, price_type, price) 
@@ -45,7 +84,9 @@ class Database {
   }
 
   // Get price history for a card (last 30 days)
-  getPriceHistory(cardId, days = 30) {
+  async getPriceHistory(cardId, days = 30) {
+    await this.waitForInit();
+    
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT 
@@ -70,7 +111,9 @@ class Database {
   }
 
   // Get latest price for a card
-  getLatestPrice(cardId) {
+  async getLatestPrice(cardId) {
+    await this.waitForInit();
+    
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT * FROM price_history 
@@ -87,7 +130,9 @@ class Database {
   }
 
   // Get all tracked cards
-  getTrackedCards() {
+  async getTrackedCards() {
+    await this.waitForInit();
+    
     return new Promise((resolve, reject) => {
       const sql = `
         SELECT DISTINCT card_id, card_name, 
@@ -104,7 +149,9 @@ class Database {
   }
 
   // Clean old data (keep 90 days)
-  cleanupOldData(days = 90) {
+  async cleanupOldData(days = 90) {
+    await this.waitForInit();
+    
     return new Promise((resolve, reject) => {
       const sql = `
         DELETE FROM price_history 
