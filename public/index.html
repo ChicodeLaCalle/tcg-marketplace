@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TCG Marketplace - Pokemon Card Prices</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>🎴 TCG Marketplace</h1>
+      <p>Pokemon TCG Card Price Checker</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="search-section">
+      <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Search for a Pokemon card (e.g., Charizard, Pikachu)..." autocomplete="off">
+        <button id="searchBtn">Search</button>
+      </div>
+      <div id="searchStatus" class="search-status"></div>
+    </section>
+
+    <section class="filters">
+      <select id="setFilter">
+        <option value="">All Sets</option>
+      </select>
+    </section>
+
+    <section id="results" class="results">
+      <div class="placeholder">Search for a Pokemon card to see prices</div>
+    </section>
+
+    <div id="pagination" class="pagination"></div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
+    </div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
