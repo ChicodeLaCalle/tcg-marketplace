@@ -5,67 +5,261 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TCG Marketplace - Card Price Tracker</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
-  <header>
-    <div class="container">
-      <h1>🎴 TCG Marketplace</h1>
-      <p>Trading Card Game Price Tracker</p>
+  <!-- Loading Screen -->
+  <div id="loadingScreen" class="loading-screen">
+    <div class="loading-content">
+      <div class="loading-logo">🎴</div>
+      <div class="loading-text">TCG Marketplace</div>
+      <div class="loading-bar">
+        <div class="loading-progress"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="/" class="nav-logo">
+        <span class="logo-icon">🎴</span>
+        <span class="logo-text">TCG Marketplace</span>
+      </a>
       
-      <!-- Game Switcher -->
-      <div class="game-switcher">
-        <button class="game-btn active" data-game="pokemon">
-          <span class="game-icon">⚡</span>
-          <span class="game-name">Pokemon TCG</span>
+      <div class="nav-center">
+        <div class="game-switcher-compact">
+          <button class="game-pill active" data-game="pokemon">
+            <span class="pill-icon">⚡</span>
+            <span class="pill-text">Pokemon</span>
+          </button>
+          <button class="game-pill" data-game="onepiece">
+            <span class="pill-icon">☠️</span>
+            <span class="pill-text">One Piece</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="nav-actions">
+        <button class="nav-btn" id="themeToggle" title="Toggle Theme">
+          <span>🌙</span>
         </button>
-        <button class="game-btn" data-game="onepiece">
-          <span class="game-icon">☠️</span>
-          <span class="game-name">One Piece</span>
+        <button class="nav-btn" id="menuToggle" title="Menu">
+          <span>☰</span>
         </button>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <main class="container">
-    <div id="gameInfo" class="game-info">
-      <span class="game-badge pokemon">⚡ Pokemon TCG</span>
+  <!-- Mobile Menu -->
+  <div id="mobileMenu" class="mobile-menu">
+    <div class="mobile-menu-content">
+      <button class="mobile-close" id="closeMenu">✕</button>
+      <div class="mobile-links">
+        <a href="/" class="mobile-link active">🏠 Home</a>
+        <a href="#" class="mobile-link">📊 Price Trends</a>
+        <a href="#" class="mobile-link">⭐ Watchlist</a>
+        <a href="#" class="mobile-link">📚 My Collection</a>
+        <a href="#" class="mobile-link">⚙️ Settings</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hero Section -->
+  <section class="hero">
+    <div class="hero-bg">
+      <div class="hero-gradient"></div>
+      <div class="hero-particles" id="heroParticles"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge">
+        <span class="badge-icon">⚡</span>
+        <span id="heroGameText">Pokemon TCG</span>
+      </div>
+      <h1 class="hero-title">
+        Track Card Prices
+        <span class="gradient-text">In Real-Time</span>
+      </h1>
+      <p class="hero-subtitle">
+        Monitor market trends, compare prices across sources, and never miss a deal on your favorite trading cards.
+      </p>
+      
+      <!-- Search Bar -->
+      <div class="search-wrapper">
+        <div class="search-box-enhanced">
+          <div class="search-icon">🔍</div>
+          <input 
+            type="text" 
+            id="searchInput" 
+            class="search-input" 
+            placeholder="Search for cards (e.g., Charizard, Pikachu)..." 
+            autocomplete="off"
+          >
+          <button id="searchBtn" class="search-btn">
+            <span>Search</span>
+            <div class="btn-shine"></div>
+          </button>
+        </div>
+        <div class="search-suggestions" id="searchSuggestions"></div>
+      </div>
+
+      <!-- Quick Filters -->
+      <div class="quick-filters">
+        <select id="setFilter" class="filter-select">
+          <option value="">📦 All Sets</option>
+        </select>
+        <button class="filter-chip" data-filter="rare">💎 Rare</button>
+        <button class="filter-chip" data-filter="trending">🔥 Trending</button>
+        <button class="filter-chip" data-filter="recent">🆕 Recent</button>
+      </div>
+
+      <!-- Stats -->
+      <div class="hero-stats">
+        <div class="stat-item">
+          <span class="stat-value" id="totalCards">15,000+</span>
+          <span class="stat-label">Cards Tracked</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="dailyUpdates">24/7</span>
+          <span class="stat-label">Price Updates</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-value" id="priceSources">3</span>
+          <span class="stat-label">Price Sources</span>
+        </div>
+      </div>
     </div>
 
-    <section class="search-section">
-      <div class="search-box">
-        <input type="text" id="searchInput" placeholder="Search for a Pokemon card (e.g., Charizard, Pikachu)..." autocomplete="off">
-        <button id="searchBtn">Search</button>
-      </div>
+    <!-- Floating Cards Animation -->
+    <div class="floating-cards" id="floatingCards">
+      <div class="float-card card-1"></div>
+      <div class="float-card card-2"></div>
+      <div class="float-card card-3"></div>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container">
+      <!-- Search Status -->
       <div id="searchStatus" class="search-status"></div>
-    </section>
 
-    <section class="filters">
-      <select id="setFilter">
-        <option value="">All Sets</option>
-      </select>
-    </section>
+      <!-- Results Section -->
+      <section id="resultsSection" class="results-section hidden">
+        <div class="section-header">
+          <h2 class="section-title">Search Results</h2>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="grid">⊞ Grid</button>
+            <button class="view-btn" data-view="list">☰ List</button>
+          </div>
+        </div>
+        <div id="results" class="results-grid"></div>
+        <div id="pagination" class="pagination"></div>
+      </section>
 
-    <section id="results" class="results">
-      <!-- Random cards will load here initially -->
-    </section>
+      <!-- Featured Cards -->
+      <section id="featuredSection" class="featured-section">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <span class="section-icon">✨</span>
+            <h2 class="section-title">Featured Cards</h2>
+          </div>
+          <button class="refresh-btn" id="refreshFeatured" title="Refresh">
+            <span>🔄</span>
+          </button>
+        </div>
+        <p class="section-subtitle">Popular cards trending this week</p>
+        <div id="featuredCards" class="featured-grid">
+          <div class="skeleton-grid">
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+            <div class="skeleton-card"></div>
+          </div>
+        </div>
+      </section>
 
-    <div id="pagination" class="pagination"></div>
+      <!-- Price Trends -->
+      <section class="trends-section">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <span class="section-icon">📈</span>
+            <h2 class="section-title">Market Trends</h2>
+          </div>
+        </div>
+        <div class="trends-grid">
+          <div class="trend-card rising">
+            <div class="trend-header">
+              <span class="trend-label">🔥 Rising</span>
+              <span class="trend-change">+12.5%</span>
+            </div>
+            <div class="trend-content">
+              <h3>Charizard VMAX</h3>
+              <p>Brilliant Stars</p>
+            </div>
+          </div>
+          <div class="trend-card falling">
+            <div class="trend-header">
+              <span class="trend-label">📉 Falling</span>
+              <span class="trend-change">-8.2%</span>
+            </div>
+            <div class="trend-content">
+              <h3>Pikachu V</h3>
+              <p>Vivid Voltage</p>
+            </div>
+          </div>
+          <div class="trend-card stable">
+            <div class="trend-header">
+              <span class="trend-label">➡️ Stable</span>
+              <span class="trend-change">+0.3%</span>
+            </div>
+            <div class="trend-content">
+              <h3>Mewtwo EX</h3>
+              <p>Evolutions</p>
+            </div>
+          </div>
+        </div>
+      </section>
 
-    <!-- Featured/Random Cards Section -->
-    <section id="featuredSection" class="featured-section">
-      <h2>🔥 Featured Cards</h2>
-      <p class="featured-subtitle">Popular cards trending right now</p>
-      <div id="featuredCards" class="featured-grid">
-        <span class="loading"></span> Loading featured cards...
-      </div>
-    </section>
+      <!-- Recently Viewed -->
+      <section id="recentSection" class="recent-section hidden">
+        <div class="section-header">
+          <div class="section-title-wrapper">
+            <span class="section-icon">👁️</span>
+            <h2 class="section-title">Recently Viewed</h2>
+          </div>
+        </div>
+        <div id="recentCards" class="recent-grid"></div>
+      </section>
+    </div>
   </main>
 
-  <footer>
+  <!-- Footer -->
+  <footer class="footer">
     <div class="container">
-      <p id="footerText">Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
+      <div class="footer-content">
+        <div class="footer-brand">
+          <span class="footer-logo">🎴</span>
+          <p>TCG Marketplace - Your trusted source for trading card prices.</p>
+        </div>
+        <div class="footer-links">
+          <a href="#" class="footer-link">About</a>
+          <a href="#" class="footer-link">API</a>
+          <a href="#" class="footer-link">Privacy</a>
+          <a href="#" class="footer-link">Contact</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p id="footerText">Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
+        <p class="copyright">© 2026 TCG Marketplace. All rights reserved.</p>
+      </div>
     </div>
   </footer>
+
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container"></div>
 
   <script src="app.js"></script>
 </body>
