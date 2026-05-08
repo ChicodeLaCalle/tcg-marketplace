@@ -51,10 +51,22 @@
             </div>
           </div>
 
+          <!-- Price Source Selector -->
+          <div class="price-source-selector">
+            <label for="priceSource">Price Source:</label>
+            <select id="priceSource">
+              <option value="tcgplayer">TCGPlayer (US)</option>
+              <option value="pricecharting">PriceCharting (US)</option>
+              <option value="cardmarket">Cardmarket (EU) - Coming Soon</option>
+            </select>
+          </div>
+
           <div class="current-prices">
-            <h3>Current Prices</h3>
+            <h3 id="pricesTitle">Current Prices</h3>
             <div id="pricesList" class="prices-grid"></div>
           </div>
+
+          <div id="priceSourceNote" class="price-source-note"></div>
         </div>
       </div>
 

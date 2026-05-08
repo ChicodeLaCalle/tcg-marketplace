@@ -4,6 +4,7 @@ const path = require('path');
 const pokemon = require('pokemontcgsdk');
 const db = require('./database');
 const priceTracker = require('./priceTracker');
+const priceService = require('./priceService');
 
 require('dotenv').config();
 
@@ -133,9 +134,35 @@ app.post('/api/cards/:id/mock-history', async (req, res) => {
   }
 });
 
+// Get available price sources
+app.get('/api/price-sources', (req, res) => {
+  res.json(priceService.getEnabledSources());
+});
+
+// Get aggregated prices from all sources
+app.get('/api/cards/:id/prices', async (req, res) => {
+  try {
+    const card = await pokemon.card.find(req.params.id);
+    const aggregated = await priceService.aggregatePrices(card);
+    
+    res.json({
+      cardId: req.params.id,
+      cardName: card.name,
+      sources: aggregated
+    });
+  } catch (error) {
+    console.error('Aggregate prices error:', error);
+    res.status(500).json({ error: 'Failed to fetch aggregated prices' });
+  }
+});
+
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ 
+    status: 'ok', 
+    timestamp: new Date().toISOString(),
+    priceSources: priceService.getEnabledSources().length
+  });
 });
 
 app.listen(PORT, () => {

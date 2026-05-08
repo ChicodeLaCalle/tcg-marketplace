@@ -9,10 +9,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   let priceChart = null;
+  let currentCard = null;
+  let aggregatedPrices = null;
 
   // Back button
   document.getElementById('backBtn').addEventListener('click', () => {
     window.history.back();
+  });
+
+  // Price source selector
+  document.getElementById('priceSource').addEventListener('change', (e) => {
+    displayPricesForSource(e.target.value);
   });
 
   // Mock data button
@@ -45,14 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
   // Load card details
   async function loadCardDetails() {
     try {
-      const response = await fetch(`/api/cards/${cardId}`);
+      const [cardResponse, pricesResponse] = await Promise.all([
+        fetch(`/api/cards/${cardId}`),
+        fetch(`/api/cards/${cardId}/prices`)
+      ]);
       
-      if (!response.ok) {
+      if (!cardResponse.ok) {
         throw new Error('Card not found');
       }
       
-      const card = await response.json();
-      displayCardDetails(card);
+      currentCard = await cardResponse.json();
+      aggregatedPrices = await pricesResponse.json();
+      
+      displayCardDetails(currentCard);
+      displayPricesForSource('tcgplayer'); // Default source
       
       // Hide loading, show content
       document.getElementById('loading').style.display = 'none';
@@ -76,14 +89,53 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('cardRarity').textContent = card.rarity || 'Unknown';
     document.getElementById('cardNumber').textContent = `#${card.number}/${card.set.printedTotal}`;
     document.getElementById('cardArtist').textContent = card.artist || 'Unknown';
+  }
 
-    // Display prices
+  // Display prices for selected source
+  function displayPricesForSource(source) {
     const pricesList = document.getElementById('pricesList');
-    const prices = card.tcgplayer?.prices || {};
+    const pricesTitle = document.getElementById('pricesTitle');
+    const noteDiv = document.getElementById('priceSourceNote');
     
-    if (Object.keys(prices).length === 0) {
-      pricesList.innerHTML = '<p class="no-prices">No price data available</p>';
-    } else {
+    let sourceName = 'TCGPlayer (US)';
+    let prices = null;
+    let note = '';
+
+    switch (source) {
+      case 'tcgplayer':
+        sourceName = 'TCGPlayer (US)';
+        prices = currentCard?.tcgplayer?.prices;
+        note = 'Prices from TCGPlayer marketplace (USD)';
+        break;
+      case 'pricecharting':
+        sourceName = 'PriceCharting (US)';
+        prices = aggregatedPrices?.sources?.pricecharting;
+        note = prices?.note || 'PriceCharting integration in progress. Visit their site for current prices.';
+        break;
+      case 'cardmarket':
+        sourceName = 'Cardmarket (EU)';
+        prices = null;
+        note = 'Cardmarket does not have a public API. Manual price entry or browser extension coming soon. Prices shown in EUR.';
+        break;
+    }
+
+    pricesTitle.textContent = `Current Prices - ${sourceName}`;
+    noteDiv.textContent = note;
+    noteDiv.style.display = note ? 'block' : 'none';
+
+    if (!prices || Object.keys(prices).length === 0) {
+      pricesList.innerHTML = `
+        <div class="no-prices-message">
+          <p>No price data available from ${sourceName}.</p>
+          ${source === 'cardmarket' ? '<p>Cardmarket prices require manual entry or browser extension (coming soon).</p>' : ''}
+          ${source === 'pricecharting' ? '<p><a href="https://www.pricecharting.com/search?q=' + encodeURIComponent(currentCard.name) + '" target="_blank">View on PriceCharting →</a></p>' : ''}
+        </div>
+      `;
+      return;
+    }
+
+    // Format prices based on source
+    if (source === 'tcgplayer') {
       pricesList.innerHTML = Object.entries(prices).map(([type, data]) => `
         <div class="price-card">
           <h4>${formatPriceType(type)}</h4>
@@ -95,6 +147,19 @@ document.addEventListener('DOMContentLoaded', () => {
           </div>
         </div>
       `).join('');
+    } else {
+      // Generic price display for other sources
+      pricesList.innerHTML = `
+        <div class="price-card">
+          <h4>Market Price</h4>
+          <div class="price-values">
+            <div class="price-row">
+              <span>Current</span>
+              <span class="price">See ${sourceName}</span>
+            </div>
+          </div>
+        </div>
+      `;
     }
   }
 

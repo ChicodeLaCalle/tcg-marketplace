@@ -543,6 +543,72 @@ footer a:hover {
   opacity: 1;
 }
 
+/* Price Source Selector */
+.price-source-selector {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.price-source-selector label {
+  display: block;
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.price-source-selector select {
+  width: 100%;
+  padding: 12px 15px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.price-source-selector select:hover,
+.price-source-selector select:focus {
+  border-color: #ff6b6b;
+}
+
+.price-source-selector select option {
+  background: #1a1a2e;
+  color: #fff;
+}
+
+.price-source-note {
+  margin-top: 15px;
+  padding: 12px 15px;
+  background: rgba(255, 193, 7, 0.1);
+  border-left: 3px solid #ffc107;
+  border-radius: 0 8px 8px 0;
+  font-size: 0.9rem;
+  color: #ffc107;
+  display: none;
+}
+
+.no-prices-message {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.no-prices-message a {
+  color: #ff6b6b;
+  text-decoration: none;
+}
+
+.no-prices-message a:hover {
+  text-decoration: underline;
+}
+
 /* Featured Section */
 .featured-section {
   margin: 50px 0;
