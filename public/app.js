@@ -11,6 +11,16 @@ const searchStatus = document.getElementById('searchStatus');
 const setFilter = document.getElementById('setFilter');
 const resultsContainer = document.getElementById('results');
 const paginationContainer = document.getElementById('pagination');
+const featuredCardsContainer = document.getElementById('featuredCards');
+const featuredSection = document.getElementById('featuredSection');
+
+// Popular Pokemon names for random cards
+const POPULAR_POKEMON = [
+  'Charizard', 'Pikachu', 'Mewtwo', 'Rayquaza', 'Umbreon', 
+  'Lugia', 'Gengar', 'Eevee', 'Snorlax', 'Blastoise',
+  'Venusaur', 'Mew', 'Gyarados', 'Dragonite', 'Alakazam',
+  'Arcanine', 'Lucario', 'Gardevoir', 'Tyranitar', 'Metagross'
+];
 
 // Initialize
 async function init() {
@@ -23,6 +33,54 @@ async function init() {
   if (query) {
     searchInput.value = query;
     performSearch(query);
+    // Hide featured section when searching
+    featuredSection.style.display = 'none';
+  } else {
+    // Show placeholder in results and load featured cards
+    resultsContainer.innerHTML = '<div class="placeholder">Search for a Pokemon card to see prices</div>';
+    loadFeaturedCards();
+  }
+}
+
+// Load featured/random cards
+async function loadFeaturedCards() {
+  try {
+    featuredCardsContainer.innerHTML = '<span class="loading"></span> Loading featured cards...';
+    
+    // Pick 3 random Pokemon
+    const shuffled = [...POPULAR_POKEMON].sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, 3);
+    
+    // Fetch one random card for each selected Pokemon
+    const cardPromises = selected.map(async (pokemon) => {
+      try {
+        const response = await fetch(`${API_BASE}/api/cards/search?q=${encodeURIComponent(pokemon)}&pageSize=5`);
+        const data = await response.json();
+        if (data.cards && data.cards.length > 0) {
+          // Return a random card from the results
+          return data.cards[Math.floor(Math.random() * data.cards.length)];
+        }
+      } catch (e) {
+        console.error(`Failed to load ${pokemon}:`, e);
+      }
+      return null;
+    });
+    
+    const cards = (await Promise.all(cardPromises)).filter(c => c !== null);
+    
+    if (cards.length === 0) {
+      featuredCardsContainer.innerHTML = '<p class="placeholder">Could not load featured cards</p>';
+      return;
+    }
+    
+    featuredCardsContainer.innerHTML = '';
+    cards.forEach(card => {
+      const cardElement = createCardElement(card, true);
+      featuredCardsContainer.appendChild(cardElement);
+    });
+  } catch (error) {
+    console.error('Failed to load featured cards:', error);
+    featuredCardsContainer.innerHTML = '<p class="placeholder">Could not load featured cards</p>';
   }
 }
 
@@ -33,6 +91,7 @@ function setupEventListeners() {
     if (query) {
       currentPage = 1;
       performSearch(query);
+      featuredSection.style.display = 'none';
     }
   });
 
@@ -42,6 +101,7 @@ function setupEventListeners() {
       if (query) {
         currentPage = 1;
         performSearch(query);
+        featuredSection.style.display = 'none';
       }
     }
   });
@@ -51,6 +111,7 @@ function setupEventListeners() {
     if (currentQuery) {
       currentPage = 1;
       performSearch(currentQuery);
+      featuredSection.style.display = 'none';
     }
   });
 }
@@ -124,9 +185,12 @@ function displayResults(data) {
 }
 
 // Create card HTML element
-function createCardElement(card) {
+function createCardElement(card, isFeatured = false) {
   const cardDiv = document.createElement('div');
   cardDiv.className = 'card clickable';
+  if (isFeatured) {
+    cardDiv.classList.add('featured-card');
+  }
   cardDiv.style.cursor = 'pointer';
   
   // Make card clickable

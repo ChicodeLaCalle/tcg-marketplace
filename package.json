@@ -26,6 +26,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "node-cron": "^4.2.1",
+    "node-fetch": "^2.7.0",
     "pokemontcgsdk": "^2.0.0",
     "sqlite3": "^6.0.1"
   }
