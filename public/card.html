@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Card Details - TCG Marketplace</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <h1>🎴 TCG Marketplace</h1>
+      <p>Pokemon TCG Card Price Tracker</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <button id="backBtn" class="back-btn">← Back to Search</button>
+    
+    <div id="loading" class="detail-loading">
+      <span class="loading"></span> Loading card details...
+    </div>
+
+    <div id="error" class="detail-error hidden">
+      Failed to load card details. <a href="/">Go back</a>
+    </div>
+
+    <div id="cardDetail" class="card-detail hidden">
+      <div class="detail-grid">
+        <div class="card-image-section">
+          <img id="cardImage" src="" alt="" class="detail-image">
+        </div>
+        
+        <div class="card-info-section">
+          <h1 id="cardName" class="detail-name"></h1>
+          <p id="cardSet" class="detail-set"></p>
+          
+          <div class="detail-meta">
+            <div class="meta-item">
+              <span class="meta-label">Rarity</span>
+              <span id="cardRarity" class="meta-value"></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Number</span>
+              <span id="cardNumber" class="meta-value"></span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Artist</span>
+              <span id="cardArtist" class="meta-value"></span>
+            </div>
+          </div>
+
+          <div class="current-prices">
+            <h3>Current Prices</h3>
+            <div id="pricesList" class="prices-grid"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="chart-section">
+        <div class="chart-header">
+          <h2>Price History (Last 30 Days)</h2>
+          <button id="mockDataBtn" class="mock-btn">Generate Demo Data</button>
+        </div>
+        <div class="chart-container">
+          <canvas id="priceChart"></canvas>
+        </div>
+        <p class="chart-note">
+          Note: This shows price tracking over time. For new cards, click "Generate Demo Data" to see a simulated price history.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
+    </div>
+  </footer>
+
+  <script src="card-detail.js"></script>
+</body>
+</html>

@@ -126,7 +126,13 @@ function displayResults(data) {
 // Create card HTML element
 function createCardElement(card) {
   const cardDiv = document.createElement('div');
-  cardDiv.className = 'card';
+  cardDiv.className = 'card clickable';
+  cardDiv.style.cursor = 'pointer';
+  
+  // Make card clickable
+  cardDiv.addEventListener('click', () => {
+    window.location.href = `/card.html?id=${card.id}`;
+  });
 
   const prices = card.tcgplayer?.prices || {};
   const marketPrice = prices.normal?.market || prices.holofoil?.market || prices.reverseHolofoil?.market;
@@ -157,6 +163,7 @@ function createCardElement(card) {
       </div>
       
       ${card.rarity ? `<span class="card-rarity rarity-${rarityClass}">${card.rarity}</span>` : ''}
+      <p class="view-details">Click to view details →</p>
     </div>
   `;
 
