@@ -72,12 +72,20 @@ app.get('/api/cards/:id', async (req, res) => {
 app.get('/api/cards/:id/history', async (req, res) => {
   try {
     const { days = 30 } = req.query;
+    
+    // First, record current TCGPlayer prices
+    const card = await pokemon.card.find(req.params.id);
+    await priceTracker.recordCardPrices(card);
+    
+    // Then get history (now including today's prices)
     const history = await db.getPriceHistory(req.params.id, parseInt(days));
     
     res.json({
       cardId: req.params.id,
+      cardName: card.name,
       days: parseInt(days),
-      data: history
+      data: history,
+      lastUpdated: new Date().toISOString()
     });
   } catch (error) {
     console.error('Price history error:', error);

@@ -169,19 +169,43 @@ document.addEventListener('DOMContentLoaded', () => {
       const response = await fetch(`/api/cards/${cardId}/history`);
       const history = await response.json();
       
-      renderChart(history.data);
+      // Show last updated time
+      if (history.lastUpdated) {
+        const updated = new Date(history.lastUpdated);
+        const timeStr = updated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+        console.log(`📊 Prices updated at ${timeStr}`);
+      }
+      
+      renderChart(history.data, history.cardName);
     } catch (error) {
       console.error('Failed to load price history:', error);
     }
   }
 
   // Render Chart.js chart
-  function renderChart(historyData) {
+  function renderChart(historyData, cardName) {
     const ctx = document.getElementById('priceChart').getContext('2d');
+    const chartContainer = document.querySelector('.chart-container');
     
     // Destroy existing chart
     if (priceChart) {
       priceChart.destroy();
+    }
+
+    // Check if we have data
+    if (!historyData || historyData.length === 0) {
+      chartContainer.innerHTML = `
+        <div class="no-chart-data">
+          <p>No price history available yet.</p>
+          <p>Click "Generate Demo Data" to see a sample price chart, or check back tomorrow after daily price tracking.</p>
+        </div>
+      `;
+      return;
+    }
+
+    // Restore canvas if it was replaced
+    if (!document.getElementById('priceChart')) {
+      chartContainer.innerHTML = '<canvas id="priceChart"></canvas>';
     }
 
     // Group data by date and price type
@@ -221,6 +245,12 @@ document.addEventListener('DOMContentLoaded', () => {
           mode: 'index'
         },
         plugins: {
+          title: {
+            display: true,
+            text: `${cardName || 'Card'} - TCGPlayer Price History`,
+            color: '#fff',
+            font: { size: 14 }
+          },
           legend: {
             position: 'top',
             labels: {

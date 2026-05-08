@@ -609,6 +609,30 @@ footer a:hover {
   text-decoration: underline;
 }
 
+/* No Chart Data Message */
+.no-chart-data {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 300px;
+  text-align: center;
+  padding: 40px 20px;
+  color: #888;
+}
+
+.no-chart-data p:first-child {
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  color: #fff;
+}
+
+.no-chart-data p:last-child {
+  font-size: 0.95rem;
+  max-width: 400px;
+}
+
 /* Featured Section */
 .featured-section {
   margin: 50px 0;
