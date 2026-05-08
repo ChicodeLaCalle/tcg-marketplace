@@ -11,7 +11,7 @@
   <header>
     <div class="container">
       <h1>🎴 TCG Marketplace</h1>
-      <p>Pokemon TCG Card Price Tracker</p>
+      <p id="gameSubtitle">Trading Card Game Price Tracker</p>
     </div>
   </header>
 
@@ -29,7 +29,10 @@
     <div id="cardDetail" class="card-detail hidden">
       <div class="detail-grid">
         <div class="card-image-section">
-          <img id="cardImage" src="" alt="" class="detail-image">
+          <div class="detail-image-wrapper">
+            <img id="cardImage" src="" alt="" class="detail-image">
+            <span id="gameTag" class="game-tag"></span>
+          </div>
         </div>
         
         <div class="card-info-section">
@@ -46,13 +49,13 @@
               <span id="cardNumber" class="meta-value"></span>
             </div>
             <div class="meta-item">
-              <span class="meta-label">Artist</span>
-              <span id="cardArtist" class="meta-value"></span>
+              <span class="meta-label">Type</span>
+              <span id="cardType" class="meta-value"></span>
             </div>
           </div>
 
-          <!-- Price Source Selector -->
-          <div class="price-source-selector">
+          <!-- Price Source Selector (only for Pokemon) -->
+          <div id="priceSourceSection" class="price-source-selector">
             <label for="priceSource">Price Source:</label>
             <select id="priceSource">
               <option value="tcgplayer">TCGPlayer (US)</option>
@@ -70,7 +73,7 @@
         </div>
       </div>
 
-      <div class="chart-section">
+      <div class="chart-section" id="chartSection">
         <div class="chart-header">
           <h2>Price History (Last 30 Days)</h2>
           <button id="mockDataBtn" class="mock-btn">Generate Demo Data</button>
@@ -78,7 +81,7 @@
         <div class="chart-container">
           <canvas id="priceChart"></canvas>
         </div>
-        <p class="chart-note">
+        <p class="chart-note" id="chartNote">
           Note: This shows price tracking over time. For new cards, click "Generate Demo Data" to see a simulated price history.
         </p>
       </div>
@@ -87,7 +90,7 @@
 
   <footer>
     <div class="container">
-      <p>Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
+      <p id="footerText">Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
     </div>
   </footer>
 

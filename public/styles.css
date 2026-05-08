@@ -692,3 +692,106 @@ footer a:hover {
 .featured-card:nth-child(1) { animation-delay: 0.1s; }
 .featured-card:nth-child(2) { animation-delay: 0.2s; }
 .featured-card:nth-child(3) { animation-delay: 0.3s; }
+
+/* Game Switcher */
+.game-switcher {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 25px;
+  flex-wrap: wrap;
+}
+
+.game-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 24px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+}
+
+.game-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-2px);
+}
+
+.game-btn.active {
+  background: linear-gradient(135deg, rgba(255, 107, 107, 0.2), rgba(254, 202, 87, 0.2));
+  border-color: #ff6b6b;
+  box-shadow: 0 4px 15px rgba(255, 107, 107, 0.3);
+}
+
+.game-btn .game-icon {
+  font-size: 1.3rem;
+}
+
+.game-info {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.game-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 0.95rem;
+  font-weight: 500;
+}
+
+.game-badge.pokemon {
+  background: rgba(255, 215, 0, 0.15);
+  border: 1px solid rgba(255, 215, 0, 0.3);
+  color: #ffd700;
+}
+
+.game-badge.onepiece {
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+  color: #60a5fa;
+}
+
+/* Game Tags on Cards */
+.card-image-wrapper {
+  position: relative;
+}
+
+.game-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.game-tag.pokemon {
+  background: linear-gradient(135deg, #ffcb05, #ff6b6b);
+}
+
+.game-tag.onepiece {
+  background: linear-gradient(135deg, #3b82f6, #1e40af);
+}
+
+/* Rarity styles for One Piece */
+.rarity-leader {
+  background: linear-gradient(90deg, #ffd700, #ff6b6b);
+  color: #000;
+}
+
+.rarity-super-rare {
+  background: linear-gradient(90deg, #a855f7, #ec4899);
+  color: #fff;
+}

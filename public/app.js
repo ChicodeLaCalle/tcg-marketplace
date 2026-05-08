@@ -1,8 +1,10 @@
-// TCG Marketplace Frontend
+// TCG Marketplace Frontend - Multi-Game Support
 const API_BASE = '';
 let currentPage = 1;
 let currentQuery = '';
 let currentSet = '';
+let currentGame = 'pokemon';
+let games = [];
 
 // DOM Elements
 const searchInput = document.getElementById('searchInput');
@@ -13,33 +15,150 @@ const resultsContainer = document.getElementById('results');
 const paginationContainer = document.getElementById('pagination');
 const featuredCardsContainer = document.getElementById('featuredCards');
 const featuredSection = document.getElementById('featuredSection');
+const gameInfo = document.getElementById('gameInfo');
+const footerText = document.getElementById('footerText');
 
-// Popular Pokemon names for random cards
-const POPULAR_POKEMON = [
-  'Charizard', 'Pikachu', 'Mewtwo', 'Rayquaza', 'Umbreon', 
-  'Lugia', 'Gengar', 'Eevee', 'Snorlax', 'Blastoise',
-  'Venusaur', 'Mew', 'Gyarados', 'Dragonite', 'Alakazam',
-  'Arcanine', 'Lucario', 'Gardevoir', 'Tyranitar', 'Metagross'
-];
+// Popular cards by game
+const POPULAR_CARDS = {
+  pokemon: [
+    'Charizard', 'Pikachu', 'Mewtwo', 'Rayquaza', 'Umbreon', 
+    'Lugia', 'Gengar', 'Eevee', 'Snorlax', 'Blastoise',
+    'Venusaur', 'Mew', 'Gyarados', 'Dragonite', 'Alakazam',
+    'Arcanine', 'Lucario', 'Gardevoir', 'Tyranitar', 'Metagross'
+  ],
+  onepiece: [
+    'Luffy', 'Zoro', 'Nami', 'Sanji', 'Shanks', 
+    'Gol D. Roger', 'Usopp', 'Chopper', 'Robin', 'Franky',
+    'Brook', 'Jinbe', 'Ace', 'Whitebeard', 'Blackbeard'
+  ]
+};
 
 // Initialize
 async function init() {
+  // Load available games
+  await loadGames();
+  
+  // Setup game switcher
+  setupGameSwitcher();
+  
+  // Load sets for current game
   await loadSets();
+  
+  // Setup event listeners
   setupEventListeners();
   
   // Check for URL params
   const params = new URLSearchParams(window.location.search);
   const query = params.get('q');
+  const game = params.get('game');
+  
+  if (game && games.find(g => g.id === game)) {
+    switchGame(game);
+  }
+  
   if (query) {
     searchInput.value = query;
     performSearch(query);
-    // Hide featured section when searching
     featuredSection.style.display = 'none';
   } else {
-    // Show placeholder in results and load featured cards
-    resultsContainer.innerHTML = '<div class="placeholder">Search for a Pokemon card to see prices</div>';
+    resultsContainer.innerHTML = `<div class="placeholder">Search for a ${getGameName(currentGame)} card to see prices</div>`;
     loadFeaturedCards();
   }
+}
+
+// Load available games
+async function loadGames() {
+  try {
+    const response = await fetch(`${API_BASE}/api/games`);
+    games = await response.json();
+    console.log('🎮 Available games:', games.map(g => g.name).join(', '));
+  } catch (error) {
+    console.error('Failed to load games:', error);
+    // Fallback to default games
+    games = [
+      { id: 'pokemon', name: 'Pokemon TCG', icon: '⚡', enabled: true },
+      { id: 'onepiece', name: 'One Piece Card Game', icon: '☠️', enabled: true, note: 'Sample data' }
+    ];
+  }
+}
+
+// Setup game switcher
+function setupGameSwitcher() {
+  const gameBtns = document.querySelectorAll('.game-btn');
+  
+  gameBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const game = btn.dataset.game;
+      switchGame(game);
+      
+      // Update active button
+      gameBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+  });
+}
+
+// Switch game
+function switchGame(game) {
+  if (game === currentGame) return;
+  
+  currentGame = game;
+  currentPage = 1;
+  currentQuery = '';
+  currentSet = '';
+  
+  // Update UI
+  updateGameUI();
+  
+  // Clear and reload
+  searchInput.value = '';
+  resultsContainer.innerHTML = `<div class="placeholder">Search for a ${getGameName(game)} card to see prices</div>`;
+  searchStatus.textContent = '';
+  paginationContainer.innerHTML = '';
+  
+  // Reload sets for new game
+  loadSets();
+  
+  // Load featured cards for new game
+  featuredSection.style.display = 'block';
+  loadFeaturedCards();
+  
+  // Update URL
+  const newUrl = new URL(window.location);
+  newUrl.searchParams.set('game', game);
+  window.history.pushState({}, '', newUrl);
+}
+
+// Update game-specific UI
+function updateGameUI() {
+  const game = games.find(g => g.id === currentGame);
+  if (!game) return;
+  
+  // Update game badge
+  gameInfo.innerHTML = `<span class="game-badge ${currentGame}">${game.icon} ${game.name}</span>`;
+  
+  // Update search placeholder
+  const placeholderText = currentGame === 'pokemon' 
+    ? 'Search for a Pokemon card (e.g., Charizard, Pikachu)...'
+    : 'Search for a One Piece card (e.g., Luffy, Zoro, Shanks)...';
+  searchInput.placeholder = placeholderText;
+  
+  // Update footer
+  if (currentGame === 'pokemon') {
+    footerText.innerHTML = 'Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a>';
+  } else {
+    footerText.innerHTML = 'One Piece Card Game data is sample data. Official API integration coming soon.';
+  }
+  
+  // Update featured section title
+  const featuredTitle = featuredSection.querySelector('h2');
+  featuredTitle.textContent = `🔥 Featured ${game.name} Cards`;
+}
+
+// Get game display name
+function getGameName(gameId) {
+  const game = games.find(g => g.id === gameId);
+  return game ? game.name : gameId;
 }
 
 // Load featured/random cards
@@ -47,21 +166,25 @@ async function loadFeaturedCards() {
   try {
     featuredCardsContainer.innerHTML = '<span class="loading"></span> Loading featured cards...';
     
-    // Pick 3 random Pokemon
-    const shuffled = [...POPULAR_POKEMON].sort(() => 0.5 - Math.random());
+    // Get popular cards for current game
+    const popularCards = POPULAR_CARDS[currentGame] || POPULAR_CARDS.pokemon;
+    
+    // Pick 3 random cards
+    const shuffled = [...popularCards].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 3);
     
-    // Fetch one random card for each selected Pokemon
-    const cardPromises = selected.map(async (pokemon) => {
+    // Fetch cards
+    const cardPromises = selected.map(async (cardName) => {
       try {
-        const response = await fetch(`${API_BASE}/api/cards/search?q=${encodeURIComponent(pokemon)}&pageSize=5`);
+        const response = await fetch(
+          `${API_BASE}/api/${currentGame}/cards/search?q=${encodeURIComponent(cardName)}&pageSize=5`
+        );
         const data = await response.json();
         if (data.cards && data.cards.length > 0) {
-          // Return a random card from the results
           return data.cards[Math.floor(Math.random() * data.cards.length)];
         }
       } catch (e) {
-        console.error(`Failed to load ${pokemon}:`, e);
+        console.error(`Failed to load ${cardName}:`, e);
       }
       return null;
     });
@@ -119,13 +242,15 @@ function setupEventListeners() {
 // Load available sets
 async function loadSets() {
   try {
-    const response = await fetch(`${API_BASE}/api/sets`);
-    const sets = await response.json();
+    setFilter.innerHTML = '<option value="">All Sets</option>';
     
-    sets.data.forEach(set => {
+    const response = await fetch(`${API_BASE}/api/${currentGame}/sets`);
+    const data = await response.json();
+    
+    data.data.forEach(set => {
       const option = document.createElement('option');
       option.value = set.id;
-      option.textContent = `${set.name} (${set.series})`;
+      option.textContent = `${set.name} ${set.series ? `(${set.series})` : ''}`;
       setFilter.appendChild(option);
     });
   } catch (error) {
@@ -141,9 +266,9 @@ async function performSearch(query) {
   paginationContainer.innerHTML = '';
 
   try {
-    let url = `${API_BASE}/api/cards/search?q=${encodeURIComponent(query)}&page=${currentPage}`;
+    let url = `${API_BASE}/api/${currentGame}/cards/search?q=${encodeURIComponent(query)}&page=${currentPage}`;
     if (currentSet) {
-      url = `${API_BASE}/api/sets/${currentSet}/cards?page=${currentPage}`;
+      url = `${API_BASE}/api/${currentGame}/sets/${currentSet}/cards?page=${currentPage}`;
     }
 
     const response = await fetch(url);
@@ -159,6 +284,7 @@ async function performSearch(query) {
     // Update URL
     const newUrl = new URL(window.location);
     newUrl.searchParams.set('q', query);
+    newUrl.searchParams.set('game', currentGame);
     window.history.pushState({}, '', newUrl);
   } catch (error) {
     console.error('Search error:', error);
@@ -194,8 +320,9 @@ function createCardElement(card, isFeatured = false) {
   cardDiv.style.cursor = 'pointer';
   
   // Make card clickable
+  const game = card.game || currentGame;
   cardDiv.addEventListener('click', () => {
-    window.location.href = `/card.html?id=${card.id}`;
+    window.location.href = `/card.html?id=${card.id}&game=${game}`;
   });
 
   const prices = card.tcgplayer?.prices || {};
@@ -204,9 +331,13 @@ function createCardElement(card, isFeatured = false) {
   const highPrice = prices.normal?.high || prices.holofoil?.high || prices.reverseHolofoil?.high;
 
   const rarityClass = getRarityClass(card.rarity);
+  const gameBadge = `<span class="game-tag ${game}">${game === 'pokemon' ? '⚡' : '☠️'}</span>`;
 
   cardDiv.innerHTML = `
-    <img src="${card.images.small}" alt="${card.name}" class="card-image" loading="lazy">
+    <div class="card-image-wrapper">
+      <img src="${card.images.small}" alt="${card.name}" class="card-image" loading="lazy">
+      ${gameBadge}
+    </div>
     <div class="card-content">
       <h3 class="card-name">${card.name}</h3>
       <p class="card-set">${card.set.name} • #${card.number}</p>
@@ -244,6 +375,8 @@ function getRarityClass(rarity) {
   if (rarityLower.includes('ultra')) return 'ultra-rare';
   if (rarityLower.includes('secret')) return 'secret-rare';
   if (rarityLower.includes('promo')) return 'promo';
+  if (rarityLower.includes('leader')) return 'leader';
+  if (rarityLower.includes('super')) return 'super-rare';
   return '';
 }
 

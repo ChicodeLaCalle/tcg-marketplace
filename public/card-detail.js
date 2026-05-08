@@ -1,7 +1,8 @@
-// Card Detail Page
+// Card Detail Page - Multi-Game Support
 document.addEventListener('DOMContentLoaded', () => {
   const urlParams = new URLSearchParams(window.location.search);
   const cardId = urlParams.get('id');
+  const game = urlParams.get('game') || 'pokemon';
   
   if (!cardId) {
     window.location.href = '/';
@@ -12,15 +13,29 @@ document.addEventListener('DOMContentLoaded', () => {
   let currentCard = null;
   let aggregatedPrices = null;
 
+  // Update UI for game
+  updateGameUI(game);
+
   // Back button
   document.getElementById('backBtn').addEventListener('click', () => {
     window.history.back();
   });
 
-  // Price source selector
-  document.getElementById('priceSource').addEventListener('change', (e) => {
-    displayPricesForSource(e.target.value);
-  });
+  // Price source selector (Pokemon only)
+  const priceSourceSection = document.getElementById('priceSourceSection');
+  const chartSection = document.getElementById('chartSection');
+  
+  if (game === 'onepiece') {
+    // Hide price source selector for One Piece
+    priceSourceSection.style.display = 'none';
+    // Show simplified chart section
+    document.getElementById('chartNote').textContent = 
+      'Price history tracking coming soon for One Piece Card Game.';
+  } else {
+    document.getElementById('priceSource').addEventListener('change', (e) => {
+      displayPricesForSource(e.target.value);
+    });
+  }
 
   // Mock data button
   document.getElementById('mockDataBtn').addEventListener('click', async () => {
@@ -29,13 +44,13 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.textContent = 'Generating...';
     
     try {
-      const response = await fetch(`/api/cards/${cardId}/mock-history`, {
+      const response = await fetch(`/api/${game}/cards/${cardId}/mock-history`, {
         method: 'POST'
       });
       
       if (response.ok) {
         // Reload the chart
-        loadPriceHistory(cardId);
+        loadPriceHistory(cardId, game);
         btn.textContent = 'Demo Data Generated!';
         setTimeout(() => {
           btn.textContent = 'Generate Demo Data';
@@ -49,12 +64,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
+  // Update UI based on game
+  function updateGameUI(gameId) {
+    const subtitle = document.getElementById('gameSubtitle');
+    const footer = document.getElementById('footerText');
+    const gameTag = document.getElementById('gameTag');
+    
+    if (gameId === 'pokemon') {
+      subtitle.textContent = 'Pokemon TCG Price Tracker';
+      footer.innerHTML = 'Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a>';
+      gameTag.textContent = '⚡';
+      gameTag.className = 'game-tag pokemon';
+    } else {
+      subtitle.textContent = 'One Piece Card Game Price Tracker';
+      footer.innerHTML = 'One Piece Card Game data is sample data for demonstration.';
+      gameTag.textContent = '☠️';
+      gameTag.className = 'game-tag onepiece';
+    }
+  }
+
   // Load card details
   async function loadCardDetails() {
     try {
       const [cardResponse, pricesResponse] = await Promise.all([
-        fetch(`/api/cards/${cardId}`),
-        fetch(`/api/cards/${cardId}/prices`)
+        fetch(`/api/${game}/cards/${cardId}`),
+        game === 'pokemon' ? fetch(`/api/${game}/cards/${cardId}/prices`) : Promise.resolve(null)
       ]);
       
       if (!cardResponse.ok) {
@@ -62,17 +96,34 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       
       currentCard = await cardResponse.json();
-      aggregatedPrices = await pricesResponse.json();
+      if (pricesResponse) {
+        aggregatedPrices = await pricesResponse.json();
+      }
       
-      displayCardDetails(currentCard);
-      displayPricesForSource('tcgplayer'); // Default source
+      displayCardDetails(currentCard, game);
+      
+      if (game === 'pokemon') {
+        displayPricesForSource('tcgplayer');
+      } else {
+        displayOnePiecePrices(currentCard);
+      }
       
       // Hide loading, show content
       document.getElementById('loading').style.display = 'none';
       document.getElementById('cardDetail').classList.remove('hidden');
       
-      // Load price history
-      loadPriceHistory(cardId);
+      // Load price history (Pokemon only)
+      if (game === 'pokemon') {
+        loadPriceHistory(cardId, game);
+      } else {
+        // For One Piece, show empty chart message
+        document.querySelector('.chart-container').innerHTML = `
+          <div class="no-chart-data">
+            <p>Price history tracking coming soon for One Piece Card Game.</p>
+            <p>Sample prices shown are for demonstration purposes.</p>
+          </div>
+        `;
+      }
     } catch (error) {
       console.error('Failed to load card:', error);
       document.getElementById('loading').style.display = 'none';
@@ -81,17 +132,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Display card details
-  function displayCardDetails(card) {
+  function displayCardDetails(card, gameId) {
     document.getElementById('cardImage').src = card.images.large;
     document.getElementById('cardImage').alt = card.name;
     document.getElementById('cardName').textContent = card.name;
     document.getElementById('cardSet').textContent = `${card.set.name} (${card.set.series})`;
     document.getElementById('cardRarity').textContent = card.rarity || 'Unknown';
-    document.getElementById('cardNumber').textContent = `#${card.number}/${card.set.printedTotal}`;
-    document.getElementById('cardArtist').textContent = card.artist || 'Unknown';
+    document.getElementById('cardNumber').textContent = `#${card.number}/${card.set.printedTotal || '???'}`;
+    
+    // Type display differs by game
+    const typeDisplay = gameId === 'pokemon' ? (card.artist || 'Unknown') : (card.type || card.color || 'Unknown');
+    document.getElementById('cardType').textContent = typeDisplay;
   }
 
-  // Display prices for selected source
+  // Display One Piece prices
+  function displayOnePiecePrices(card) {
+    const pricesList = document.getElementById('pricesList');
+    const pricesTitle = document.getElementById('pricesTitle');
+    const noteDiv = document.getElementById('priceSourceNote');
+    
+    pricesTitle.textContent = 'Sample Prices (USD)';
+    noteDiv.textContent = 'One Piece prices are sample data for demonstration. Official price tracking coming soon.';
+    noteDiv.style.display = 'block';
+    
+    const prices = card.tcgplayer?.prices || {};
+    
+    if (Object.keys(prices).length === 0) {
+      pricesList.innerHTML = '<p class="no-prices">No price data available</p>';
+    } else {
+      pricesList.innerHTML = Object.entries(prices).map(([type, data]) => `
+        <div class="price-card">
+          <h4>${formatPriceType(type)}</h4>
+          <div class="price-values">
+            ${data.market ? `<div class="price-row"><span>Market</span><span class="price">$${data.market.toFixed(2)}</span></div>` : ''}
+            ${data.low ? `<div class="price-row"><span>Low</span><span class="price-low">$${data.low.toFixed(2)}</span></div>` : ''}
+            ${data.high ? `<div class="price-row"><span>High</span><span class="price-high">$${data.high.toFixed(2)}</span></div>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+  }
+
+  // Display prices for selected source (Pokemon only)
   function displayPricesForSource(source) {
     const pricesList = document.getElementById('pricesList');
     const pricesTitle = document.getElementById('pricesTitle');
@@ -148,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `).join('');
     } else {
-      // Generic price display for other sources
       pricesList.innerHTML = `
         <div class="price-card">
           <h4>Market Price</h4>
@@ -164,12 +245,11 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // Load and display price history chart
-  async function loadPriceHistory(cardId) {
+  async function loadPriceHistory(cardId, gameId) {
     try {
-      const response = await fetch(`/api/cards/${cardId}/history`);
+      const response = await fetch(`/api/${gameId}/cards/${cardId}/history`);
       const history = await response.json();
       
-      // Show last updated time
       if (history.lastUpdated) {
         const updated = new Date(history.lastUpdated);
         const timeStr = updated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
@@ -187,12 +267,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const ctx = document.getElementById('priceChart').getContext('2d');
     const chartContainer = document.querySelector('.chart-container');
     
-    // Destroy existing chart
     if (priceChart) {
       priceChart.destroy();
     }
 
-    // Check if we have data
     if (!historyData || historyData.length === 0) {
       chartContainer.innerHTML = `
         <div class="no-chart-data">
@@ -203,12 +281,10 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Restore canvas if it was replaced
     if (!document.getElementById('priceChart')) {
       chartContainer.innerHTML = '<canvas id="priceChart"></canvas>';
     }
 
-    // Group data by date and price type
     const dates = [...new Set(historyData.map(d => d.date))].sort();
     const priceTypes = [...new Set(historyData.map(d => d.price_type))];
     
@@ -275,17 +351,11 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         scales: {
           x: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.05)'
-            },
-            ticks: {
-              color: '#888'
-            }
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: { color: '#888' }
           },
           y: {
-            grid: {
-              color: 'rgba(255, 255, 255, 0.05)'
-            },
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
             ticks: {
               color: '#888',
               callback: function(value) {

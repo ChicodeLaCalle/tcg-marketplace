@@ -3,18 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TCG Marketplace - Pokemon Card Prices</title>
+  <title>TCG Marketplace - Card Price Tracker</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <header>
     <div class="container">
       <h1>🎴 TCG Marketplace</h1>
-      <p>Pokemon TCG Card Price Checker</p>
+      <p>Trading Card Game Price Tracker</p>
+      
+      <!-- Game Switcher -->
+      <div class="game-switcher">
+        <button class="game-btn active" data-game="pokemon">
+          <span class="game-icon">⚡</span>
+          <span class="game-name">Pokemon TCG</span>
+        </button>
+        <button class="game-btn" data-game="onepiece">
+          <span class="game-icon">☠️</span>
+          <span class="game-name">One Piece</span>
+        </button>
+      </div>
     </div>
   </header>
 
   <main class="container">
+    <div id="gameInfo" class="game-info">
+      <span class="game-badge pokemon">⚡ Pokemon TCG</span>
+    </div>
+
     <section class="search-section">
       <div class="search-box">
         <input type="text" id="searchInput" placeholder="Search for a Pokemon card (e.g., Charizard, Pikachu)..." autocomplete="off">
@@ -47,7 +63,7 @@
 
   <footer>
     <div class="container">
-      <p>Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
+      <p id="footerText">Powered by <a href="https://pokemontcg.io/" target="_blank">Pokemon TCG API</a></p>
     </div>
   </footer>
 
